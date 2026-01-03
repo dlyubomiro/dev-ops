@@ -27,7 +27,7 @@ jobs:
         with:
           go-version: '1.21'
       - name: Install golangci-lint
-        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.7.2
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
       - name: Check golangci-lint version
         run: golangci-lint --version
       - name: Run golangci-lint
@@ -128,6 +128,7 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: |
+          psql -h localhost -U postgres -c "DROP DATABASE IF EXISTS test_booksdb;"
           psql -h localhost -U postgres -c "CREATE DATABASE test_booksdb;"
           psql -h localhost -U postgres -d test_booksdb -f migrations/001_initial_schema.sql
           psql -h localhost -U postgres -d test_booksdb -f migrations/002_add_description.sql 
