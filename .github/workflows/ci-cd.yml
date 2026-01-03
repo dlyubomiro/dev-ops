@@ -146,12 +146,17 @@ jobs:
       - uses: actions/checkout@v3
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
       - name: Configure kubectl
         run: |
           mkdir -p $HOME/.kube
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > $HOME/.kube/config
+      - name: Debug kubeconfig
+        run: cat $HOME/.kube/config
+      - name: Test Kubernetes connection
+        run: kubectl cluster-info
       - name: Deploy to Kubernetes
         run: |
           kubectl set image deployment/books-api books-api=${{ secrets.DOCKER_USERNAME }}/books-api:${{ github.sha }} -n books-namespace
           kubectl rollout status deployment/books-api -n books-namespace
-
