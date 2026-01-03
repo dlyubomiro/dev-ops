@@ -29,7 +29,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: latest
+          version: v2.7.2
           args: --timeout=5m
 
   style-check:
@@ -112,7 +112,11 @@ jobs:
         uses: ankane/setup-postgres@v1
         with:
           postgres-version: 15
+        env:
+          POSTGRES_PASSWORD: postgres
       - name: Test migrations
+        env:
+          PGPASSWORD: postgres 
         run: |
           psql -U postgres -c "CREATE DATABASE test_booksdb;"
           psql -U postgres -d test_booksdb -f migrations/001_initial_schema.sql
