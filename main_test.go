@@ -1,9 +1,9 @@
 package main
 
 import (
-	"log"
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -44,7 +44,7 @@ func TestCreateBook(t *testing.T) {
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(createBook)
 	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusOK {
+	if status := rr.Code; status != http.StatusCreated {
 		t.Errorf("Expected status 200, got %d", status)
 	}
 }
