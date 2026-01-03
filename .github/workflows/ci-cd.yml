@@ -29,7 +29,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v2.7.2
+          version: latest
           args: --timeout=5m
 
   style-check:
@@ -108,6 +108,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Install PostgreSQL
+        run: sudo apt-get install -y postgresql
       - name: Setup PostgreSQL
         uses: ankane/setup-postgres@v1
         with:
@@ -116,13 +118,13 @@ jobs:
           POSTGRES_PASSWORD: postgres
       - name: Test migrations
         env:
-          PGPASSWORD: postgres 
+          PGPASSWORD: postgres
         run: |
           psql -U postgres -c "CREATE DATABASE test_booksdb;"
           psql -U postgres -d test_booksdb -f migrations/001_initial_schema.sql
           psql -U postgres -d test_booksdb -f migrations/002_add_description.sql
           psql -U postgres -d test_booksdb -c "\d books"
-
+          
   deploy:
     name: Deploy to Kubernetes
     runs-on: ubuntu-latest
