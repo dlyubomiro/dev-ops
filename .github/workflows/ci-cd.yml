@@ -8,7 +8,7 @@ on:
 
 jobs:
   unit-test:
-    name: Unit Tests
+    name: "Code Quality: Unit Tests"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -19,7 +19,7 @@ jobs:
         run: go test -v ./...
 
   linter:
-    name: Linter
+    name: "Code Quality: Linter"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -34,7 +34,7 @@ jobs:
         run: golangci-lint run --timeout=5m
 
   style-check:
-    name: Style Check
+    name: "Code Quality: Style Check"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -50,8 +50,9 @@ jobs:
           fi
 
   sast:
-    name: SAST Security Scan
+    name: "Security: SAST Security Scan"
     runs-on: ubuntu-latest
+    needs: [unit-test, linter, style-check]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -68,8 +69,9 @@ jobs:
           path: gosec-report.json
 
   build:
-    name: Build Docker Image
+    name: "Build: Build Docker Image"
     runs-on: ubuntu-latest
+    needs: [sast]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Docker Buildx
@@ -88,7 +90,7 @@ jobs:
           tags: ghcr.io/${{ github.repository_owner }}/books-api:${{ github.sha }}
 
   scan:
-    name: Vulnerability Scan
+    name: "Post-build: Vulnerability Scan"
     runs-on: ubuntu-latest
     needs: [build]
     steps:
@@ -109,8 +111,9 @@ jobs:
           output: 'trivy-results.sarif'
 
   test-sql:
-    name: Test SQL Deltas
+    name: "Post-build: Test SQL Deltas"
     runs-on: ubuntu-latest
+    needs: [build]
     services:
       postgres:
         image: postgres:15
@@ -138,35 +141,28 @@ jobs:
           psql -h localhost -U postgres -d test_booksdb -f migrations/002_add_description.sql 
 
   deploy:
-    name: Deploy to Kubernetes (Kind)
+    name: "Deploy: Kubernetes"
     runs-on: ubuntu-latest
-    needs: [build, scan, test-sql]
+    needs: [scan, test-sql]
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
-
       - name: Create kind cluster
         uses: helm/kind-action@v1.10.0
         with:
           cluster_name: ci-cluster
-
       - name: Verify cluster
         run: kubectl get nodes
-
       - name: Create namespace
         run: kubectl create namespace books-namespace || true
-
       - name: Apply Kubernetes manifests
         run: kubectl apply -f k8s/
-
       - name: Update image
         run: |
           kubectl set image deployment/books-api \
             books-api=ghcr.io/${{ github.repository_owner }}/books-api:${{ github.sha }} \
             -n books-namespace
-
       - name: Rollout status
         run: kubectl rollout status deployment/books-api -n books-namespace
-
       - name: Get pods
         run: kubectl get pods -n books-namespace
