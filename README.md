@@ -73,7 +73,7 @@ Developer → Git Repository → CI/CD Pipeline → Docker Registry → Kubernet
 7. **Build Docker Image** - Multi-stage Docker build
 8. **Scan for Vulnerabilities** - Trivy container scanning
 9. **Test SQL Deltas** - Validate database migrations
-10. **Push to Registry** - Docker Hub/Container Registry
+10. **Push to Registry** - GitHub Container Registry (GHCR)
 11. **Rolling Deploy to Kubernetes** - Automated K8s deployment
 
 ## Local Development
@@ -122,9 +122,9 @@ The pipeline is defined in `.github/workflows/ci-cd.yml` and includes:
 - **Style Check**: Code formatting verification
 - **SAST**: Static Application Security Testing (see SAST_DEEP_DIVE.md)
 - **Build**: Docker image creation
-- **Vulnerability Scan**: Container image scanning
-- **SQL Testing**: Migration validation
-- **Deploy**: Kubernetes rolling deployment
+- **Vulnerability Scan**: Container image scanning with Trivy
+- **SQL Testing**: Migration validation with PostgreSQL
+- **Deploy**: Kubernetes rolling deployment using Kind
 
 ## Kubernetes Deployment
 
